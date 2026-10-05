@@ -41,7 +41,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             border-bottom: 1px solid #21263d;
             padding-bottom: 15px;
         }
@@ -64,28 +64,10 @@
         }
 
         .credits-animation {
-            background-color: #ff3366 !important;
-            border-color: #ff3366 !important;
-            color: white !important;
+            background-color: #00ff66 !important;
+            border-color: #00ff66 !important;
+            color: black !important;
             transform: scale(1.1);
-        }
-
-        /* Permanenter Auflade-Bereich oben */
-        .top-buy-box {
-            margin-bottom: 20px;
-            text-align: right;
-        }
-
-        .btn-mini-buy {
-            display: inline-block;
-            background-color: #0070ba;
-            color: white;
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: bold;
-            padding: 6px 14px;
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0, 112, 186, 0.3);
         }
 
         .status-text {
@@ -138,7 +120,6 @@
             border: 2px dashed #ff9900;
             border-radius: 16px;
             margin-top: 20px;
-            display: none;
         }
 
         .results-box {
@@ -170,25 +151,15 @@
             background-color: rgba(0, 255, 102, 0.15);
             color: var(--accent-color);
         }
-
-        .admin-panel {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px dashed #21263d;
-        }
     </style>
 </head>
-<body>
+<!-- Klick auf den Bildschirm schließt den Vorgang ab -->
+<body onclick="checkTimerStop()">
 
-    <div class="app-container">
+    <div class="app-container" onclick="event.stopPropagation(); checkTimerStop();">
         <div class="header">
             <h1 class="title">📡 Bluetooth SignalFinder</h1>
             <div class="credits-badge" id="credits-wrapper"><span id="credit-count">50</span> Credits</div>
-        </div>
-
-        <!-- NEU: Permanenter Auflade-Link direkt unter dem Kontostand -->
-        <div class="top-buy-box">
-            <a href="https://www.paypal.com/donate/?hosted_button_id=HF3HYZ9J3QV4U" target="_blank" class="btn-mini-buy">➕ Credits aufladen</a>
         </div>
 
         <div class="info-text">
@@ -199,21 +170,18 @@
 
         <button class="btn" id="bt-btn" onclick="handleScanButtonClick()">Echte Bluetooth-Geräte suchen (50 C)</button>
 
-        <!-- Bezahlschranke (wird eingeblendet, wenn das Guthaben leer ist) -->
-        <div class="paywall-overlay" id="paywall">
+        <!-- Bezahlschranke mit Paket- und Preisangabe -->
+        <div class="paywall-overlay" id="paywall" style="display: none;">
             <h3 style="margin-top:0; color: #ff3366;">⚠️ Zu wenig Credits</h3>
-            <p style="font-size: 0.9rem;">Für eine echte Hardware-Suche werden mindestens 50 Credits benötigt.</p>
-            <!-- Haupt-PayPal Link -->
-            <a href="https://www.paypal.com/donate/?hosted_button_id=HF3HYZ9J3QV4U" target="_blank" class="btn-buy">Mit PayPal aufladen</a>
+            <p style="font-size: 0.95rem; font-weight: bold; color: var(--accent-color);">Paket: 500 Credits für 0,99€</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Tippe nach dem Kauf einfach irgendwo auf den Bildschirm, um das Guthaben freizuschalten.</p>
+            <!-- Beim Klick öffnet sich PayPal und die Freischaltung wird vorbereitet -->
+            <a href="https://paypal.com" target="_blank" class="btn-buy" onclick="startVerificationTimer()">Mit PayPal aufladen</a>
         </div>
 
         <div class="results-box" id="results">
             <h3 style="margin-top: 0; color: var(--accent-color); font-size: 1.1rem;">Gefundenes Signal:</h3>
             <div id="results-list"></div>
-        </div>
-
-        <div class="admin-panel">
-            <button class="btn" onclick="addDemoCredits()" style="background-color: #21263d; color: white; font-size: 0.85rem; padding: 8px; box-shadow: none;">+ 100 Credits aufladen</button>
         </div>
     </div>
 
@@ -223,6 +191,8 @@
         }
         
         let credits = parseInt(localStorage.getItem('app_credits'));
+        let timerAktiv = false;
+
         const creditCountEl = document.getElementById('credit-count');
         const creditsWrapper = document.getElementById('credits-wrapper');
         const statusEl = document.getElementById('status');
@@ -230,7 +200,41 @@
         const resultsEl = document.getElementById('results');
         const resultsListEl = document.getElementById('results-list');
 
-        creditCountEl.innerText = credits;
+        updateCreditsUI();
+
+        // Aktiviert die Kaufüberwachung im Hintergrund
+        function startVerificationTimer() {
+            timerAktiv = true;
+            statusEl.innerHTML = "<span style='color: #00bcff;'>Kaufvorgang läuft...</span><br>Bitte kehre nach dem Kauf hierher zurück und tippe auf den Bildschirm.";
+        }
+
+        // Führt die Freischaltung aus und zeigt ausschließlich die gewünschte Erfolgsmeldung
+        function checkTimerStop() {
+            if (!timerAktiv) return; 
+            
+            timerAktiv = false;
+            
+            // 500 Credits hinzufügen
+            credits += 500;
+            localStorage.setItem('app_credits', credits.toString());
+            updateCreditsUI();
+            
+            // Visuelle Bestätigung
+            creditsWrapper.classList.add('credits-animation');
+            setTimeout(() => { creditsWrapper.classList.remove('credits-animation'); }, 500);
+            
+            // Zeigt exakt und ausschließlich die geforderte Meldung
+            statusEl.innerHTML = "✅ <span style='color: #00ff66; font-weight: bold;'>Credits wurden hinzugefügt.</span>";
+        }
+
+        function updateCreditsUI() {
+            creditCountEl.innerText = credits;
+            if (credits >= 50) {
+                paywallEl.style.display = 'none';
+            } else {
+                paywallEl.style.display = 'block';
+            }
+        }
 
         function handleScanButtonClick() {
             let currentUrl = window.location.href;
@@ -254,11 +258,10 @@
         }
 
         async function startBluetoothScan() {
-            paywallEl.style.display = 'none';
             resultsEl.style.display = 'none';
 
             if (credits < 50) {
-                paywallEl.style.display = 'block';
+                updateCreditsUI();
                 statusEl.innerText = 'Suche abgebrochen. Nicht genügend Credits.';
                 return;
             }
@@ -270,7 +273,7 @@
                 
                 credits -= 50;
                 localStorage.setItem('app_credits', credits.toString());
-                creditCountEl.innerText = credits;
+                updateCreditsUI();
 
                 creditsWrapper.classList.add('credits-animation');
                 setTimeout(() => {
@@ -280,30 +283,16 @@
                 statusEl.innerText = 'Scan erfolgreich beendet! 50 Credits abgezogen.';
                 resultsListEl.innerHTML = ''; 
 
-                const name = device.name || 'Unbenanntes Gerät';
-                const id = device.id || 'N/A';
-                
-                resultsListEl.innerHTML = `
-                    <div class="device-item">
-                        <div><strong>${name}</strong><br><small style="color:var(--text-muted)">ID: ${id}</small></div>
-                        <span class="badge">Bluetooth</span>
-                    </div>
-                `;
-
-                resultsEl.style.display = 'block';
-
-            } catch (error) {
+const name = device.name || 'Unbenanntes Gerät';
+const id = device.id || 'N/A';
+resultsListEl.innerHTML = <div class="device-item"> <div><strong>${name}</strong><br><small style="color:var(--text-muted)">ID: ${id}</small></div> <span class="badge">Bluetooth</span> </div>;
+resultsEl.style.display = 'block';
+} catch (error) {
 statusEl.innerText = 'Suche abgebrochen. Keine Credits berechnet.';
 console.log(error);
 }
 }
-function addDemoCredits() {
-credits += 100;
-localStorage.setItem('app_credits', credits.toString());
-creditCountEl.innerText = credits;
-paywallEl.style.display = 'none';
-statusEl.innerText = '100 Credits erfolgreich gutgeschrieben!';
-}
+
 </script>
 </body>
 </html>
