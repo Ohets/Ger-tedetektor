@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SignalFinder Pro (Echtes Bluetooth)</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-color: #161b26;
+            --accent-color: #00ff66;
+            --text-color: #ffffff;
+            --text-muted: #8b949e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--panel-color);
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #21263d;
+            padding-bottom: 15px;
+        }
+
+        .title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .credits-badge {
+            background-color: #21263d;
+            padding: 8px 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .credits-animation {
+            background-color: #ff3366 !important;
+            border-color: #ff3366 !important;
+            color: white !important;
+            transform: scale(1.1);
+        }
+
+        /* Permanenter Auflade-Bereich oben */
+        .top-buy-box {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .btn-mini-buy {
+            display: inline-block;
+            background-color: #0070ba;
+            color: white;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 112, 186, 0.3);
+        }
+
+        .status-text {
+            font-size: 1rem;
+            margin: 25px 0;
+            color: var(--text-muted);
+            min-height: 48px;
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            color: #ffaa00;
+            margin-bottom: 15px;
+            background: rgba(255, 170, 0, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 170, 0, 0.2);
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 255, 102, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .btn-buy {
+            background-color: #0070ba;
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-top: 15px;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 112, 186, 0.4);
+        }
+
+        .paywall-overlay {
+            padding: 20px;
+            background: #111520;
+            border: 2px dashed #ff9900;
+            border-radius: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-box {
+            margin-top: 20px;
+            background-color: #0b0f19;
+            border-radius: 16px;
+            padding: 15px;
+            display: none;
+            text-align: left;
+        }
+
+        .device-item {
+            padding: 12px 5px;
+            border-bottom: 1px solid #21263d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .device-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            background-color: rgba(0, 255, 102, 0.15);
+            color: var(--accent-color);
+        }
+
+        .admin-panel {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px dashed #21263d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1 class="title">📡 Bluetooth SignalFinder</h1>
+            <div class="credits-badge" id="credits-wrapper"><span id="credit-count">50</span> Credits</div>
+        </div>
+
+        <!-- NEU: Permanenter Auflade-Link direkt unter dem Kontostand -->
+        <div class="top-buy-box">
+            <a href="https://www.paypal.com/donate/?hosted_button_id=HF3HYZ9J3QV4U" target="_blank" class="btn-mini-buy">➕ Credits aufladen</a>
+        </div>
+
+        <div class="info-text">
+            ℹ️ Hinweis: Bitte aktiviere Bluetooth in deinen Handy-Einstellungen, bevor du den Scan startest.
+        </div>
+
+        <div class="status-text" id="status">Kosten pro Suche: 50 Credits.<br>Bereit für echte Bluetooth-Suche...</div>
+
+        <button class="btn" id="bt-btn" onclick="handleScanButtonClick()">Echte Bluetooth-Geräte suchen (50 C)</button>
+
+        <!-- Bezahlschranke (wird eingeblendet, wenn das Guthaben leer ist) -->
+        <div class="paywall-overlay" id="paywall">
+            <h3 style="margin-top:0; color: #ff3366;">⚠️ Zu wenig Credits</h3>
+            <p style="font-size: 0.9rem;">Für eine echte Hardware-Suche werden mindestens 50 Credits benötigt.</p>
+            <!-- Haupt-PayPal Link -->
+            <a href="https://www.paypal.com/donate/?hosted_button_id=HF3HYZ9J3QV4U" target="_blank" class="btn-buy">Mit PayPal aufladen</a>
+        </div>
+
+        <div class="results-box" id="results">
+            <h3 style="margin-top: 0; color: var(--accent-color); font-size: 1.1rem;">Gefundenes Signal:</h3>
+            <div id="results-list"></div>
+        </div>
+
+        <div class="admin-panel">
+            <button class="btn" onclick="addDemoCredits()" style="background-color: #21263d; color: white; font-size: 0.85rem; padding: 8px; box-shadow: none;">+ 100 Credits aufladen</button>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('app_credits') === null) {
+            localStorage.setItem('app_credits', '50');
+        }
+        
+        let credits = parseInt(localStorage.getItem('app_credits'));
+        const creditCountEl = document.getElementById('credit-count');
+        const creditsWrapper = document.getElementById('credits-wrapper');
+        const statusEl = document.getElementById('status');
+        const paywallEl = document.getElementById('paywall');
+        const resultsEl = document.getElementById('results');
+        const resultsListEl = document.getElementById('results-list');
+
+        creditCountEl.innerText = credits;
+
+        function handleScanButtonClick() {
+            let currentUrl = window.location.href;
+
+            if (currentUrl.startsWith('file:') || currentUrl.startsWith('content:')) {
+                if (!navigator.bluetooth) {
+                    statusEl.innerText = 'Fehler: Lokale Dateien blockieren Bluetooth. Bitte öffne diese Datei über "Datei öffnen" direkt in Google Chrome.';
+                } else {
+                    startBluetoothScan();
+                }
+                return;
+            }
+
+            if (!navigator.bluetooth) {
+                statusEl.innerText = 'Wechsle zu Google Chrome...';
+                let cleanUrl = currentUrl.replace(/^https?:\/\//, "");
+                window.location.href = "intent://" + cleanUrl + "#Intent;scheme=https;package=com.android.chrome;end";
+            } else {
+                startBluetoothScan();
+            }
+        }
+
+        async function startBluetoothScan() {
+            paywallEl.style.display = 'none';
+            resultsEl.style.display = 'none';
+
+            if (credits < 50) {
+                paywallEl.style.display = 'block';
+                statusEl.innerText = 'Suche abgebrochen. Nicht genügend Credits.';
+                return;
+            }
+
+            statusEl.innerText = 'Warte auf Bluetooth-Geräteauswahl des Systems...';
+
+            try {
+                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+                
+                credits -= 50;
+                localStorage.setItem('app_credits', credits.toString());
+                creditCountEl.innerText = credits;
+
+                creditsWrapper.classList.add('credits-animation');
+                setTimeout(() => {
+                    creditsWrapper.classList.remove('credits-animation');
+                }, 500);
+
+                statusEl.innerText = 'Scan erfolgreich beendet! 50 Credits abgezogen.';
+                resultsListEl.innerHTML = ''; 
+
+                const name = device.name || 'Unbenanntes Gerät';
+                const id = device.id || 'N/A';
+                
+                resultsListEl.innerHTML = `
+                    <div class="device-item">
+                        <div><strong>${name}</strong><br><small style="color:var(--text-muted)">ID: ${id}</small></div>
+                        <span class="badge">Bluetooth</span>
+                    </div>
+                `;
+
+                resultsEl.style.display = 'block';
+
+            } catch (error) {
+statusEl.innerText = 'Suche abgebrochen. Keine Credits berechnet.';
+console.log(error);
+}
+}
+function addDemoCredits() {
+credits += 100;
+localStorage.setItem('app_credits', credits.toString());
+creditCountEl.innerText = credits;
+paywallEl.style.display = 'none';
+statusEl.innerText = '100 Credits erfolgreich gutgeschrieben!';
+}
+</script>
+</body>
+</html>
