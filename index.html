@@ -14,7 +14,7 @@ h1{font-size:1.25rem;margin:0;text-align:left}.credits{padding:8px 12px;border:1
 .info{margin:20px 0 14px;padding:10px;border:1px solid #55451c;border-radius:8px;background:rgba(255,170,0,.1);color:#ffaa00;font-size:.85rem}
 .status{min-height:50px;margin:20px 0;color:var(--muted);line-height:1.45}.btn{width:100%;border:0;border-radius:12px;padding:15px;margin-bottom:10px;background:var(--accent);color:#000;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(0,255,102,.2)}.btn:disabled{opacity:.55;cursor:not-allowed}
 .paywall{margin-top:20px;padding:20px;border:2px dashed #ff9900;border-radius:16px;background:#111520}.package{margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0d121d}.package h4{margin:0 0 6px;font-size:1rem}.package p{margin:4px 0;font-size:.9rem}.buy{display:block;margin-top:10px;padding:13px;border-radius:12px;background:#0070ba;color:#fff;text-decoration:none;font-weight:800}.buy-note{font-size:.78rem;color:var(--muted);margin-top:12px}
-.results{display:none;margin-top:20px;padding:15px;border-radius:16px;background:#0b0f19;text-align:left}.device{padding:12px 5px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.device:last-child{border-bottom:0}.badge{font-size:.75rem;padding:4px 8px;border-radius:6px;background:rgba(0,255,102,.15);color:var(--accent);font-weight:700;white-space:nowrap}.small{color:var(--muted);font-size:.78rem;word-break:break-all}
+.results{display:none;margin-top:20px;padding:15px;border-radius:16px;background:#0b0f19;text-align:left}.results-title{margin-top:0;color:var(--accent);font-size:1.1rem}.device{padding:14px 5px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.device:last-child{border-bottom:0}.device-name{font-size:1rem;font-weight:800;color:#fff;word-break:break-word}.device-id{color:var(--muted);font-size:.76rem;word-break:break-all;margin-top:4px}.badge{font-size:.75rem;padding:4px 8px;border-radius:6px;background:rgba(0,255,102,.15);color:var(--accent);font-weight:700;white-space:nowrap}.empty{color:var(--muted);font-size:.85rem}
 </style>
 </head>
 <body>
@@ -27,23 +27,12 @@ h1{font-size:1.25rem;margin:0;text-align:left}.credits{padding:8px 12px;border:1
 <div id="paywall" class="paywall">
 <h3 style="margin-top:0;color:#ff9900">💳 Credits kaufen</h3>
 <p style="font-size:.85rem;color:var(--muted)">Du kannst jederzeit neue Credits kaufen – auch wenn noch Credits vorhanden sind.</p>
-
-<div class="package">
-<h4>500 Credits</h4>
-<p style="font-weight:700;color:var(--accent)">0,99 €</p>
-<a class="buy" href="https://www.paypal.com/" target="_blank" rel="noopener">💰 500 Credits kaufen</a>
-</div>
-
-<div class="package">
-<h4>1000 Credits</h4>
-<p style="font-weight:700;color:var(--accent)">1,99 €</p>
-<a class="buy" href="https://www.paypal.com/" target="_blank" rel="noopener">💰 1000 Credits kaufen</a>
-</div>
-
+<div class="package"><h4>500 Credits</h4><p style="font-weight:700;color:var(--accent)">0,99 €</p><a class="buy" href="https://www.paypal.com/" target="_blank" rel="noopener">💰 500 Credits kaufen</a></div>
+<div class="package"><h4>1000 Credits</h4><p style="font-weight:700;color:var(--accent)">1,99 €</p><a class="buy" href="https://www.paypal.com/" target="_blank" rel="noopener">💰 1000 Credits kaufen</a></div>
 <div class="buy-note">Die tatsächliche Gutschrift sollte über eine bestätigte Zahlung erfolgen.</div>
 </div>
 
-<div id="results" class="results"><h3 style="margin-top:0;color:var(--accent);font-size:1.1rem">Gefundene Geräte:</h3><div id="resultsList"></div></div>
+<div id="results" class="results"><h3 class="results-title">📱 Gefundene Bluetooth-Geräte</h3><div id="resultsList"></div></div>
 </div>
 <script>
 (() => {
@@ -82,18 +71,21 @@ h1{font-size:1.25rem;margin:0;text-align:left}.credits{padding:8px 12px;border:1
     if(credits < COST){ updateUI(); status.textContent = 'Suche abgebrochen. Nicht genügend Credits.'; return; }
 
     results.style.display = 'none';
+    resultsList.innerHTML = '';
     scanBtn.disabled = true;
     status.textContent = 'Warte auf die Bluetooth-Geräteauswahl des Systems...';
 
     try{
       const device = await navigator.bluetooth.requestDevice({acceptAllDevices:true});
       setCredits(credits - COST);
-      flashCredits();
-      const name = device.name || 'Unbenanntes Gerät';
+
+      const name = (device.name && device.name.trim()) ? device.name.trim() : 'Unbenanntes Bluetooth-Gerät';
       const id = device.id || 'Nicht verfügbar';
-      resultsList.innerHTML = `<div class="device"><div><strong>${escapeHTML(name)}</strong><br><span class="small">ID: ${escapeHTML(id)}</span></div><span class="badge">Bluetooth</span></div>`;
+
+      resultsList.innerHTML = `<div class="device"><div><div class="device-name">📱 ${escapeHTML(name)}</div><div class="device-id">Gerätename: ${escapeHTML(name)}<br>ID: ${escapeHTML(id)}</div></div><span class="badge">Bluetooth</span></div>`;
       results.style.display = 'block';
-      status.innerHTML = '✅ Suche erfolgreich beendet.<br>50 Credits wurden abgezogen.';
+      flashCredits();
+      status.innerHTML = `✅ Gerät gefunden: <strong>${escapeHTML(name)}</strong><br>50 Credits wurden abgezogen.`;
     }catch(error){
       console.log(error);
       status.textContent = 'Suche abgebrochen. Keine Credits wurden berechnet.';
